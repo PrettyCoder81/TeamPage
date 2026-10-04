@@ -24,9 +24,10 @@ import { switchRole, logout } from '../store/slices/authSlice';
 
 interface HeaderProps {
   title: string;
+  onNavigate?: (path: string) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ title }) => {
+const Header: React.FC<HeaderProps> = ({ title, onNavigate }) => {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.auth.user);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -49,6 +50,20 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
 
   const handleLogout = () => {
     dispatch(logout());
+    handleMenuClose();
+  };
+
+  const handleProfileClick = () => {
+    if (onNavigate) {
+      onNavigate('/profile');
+    }
+    handleMenuClose();
+  };
+
+  const handleSettingsClick = () => {
+    if (onNavigate) {
+      onNavigate('/settings');
+    }
     handleMenuClose();
   };
 
@@ -107,11 +122,11 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
               <Typography variant="caption" color="text.secondary">{user?.email}</Typography>
             </Box>
             <Divider />
-            <MenuItem onClick={handleMenuClose}>
+            <MenuItem onClick={handleProfileClick}>
               <ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon>
               Profile
             </MenuItem>
-            <MenuItem onClick={handleMenuClose}>
+            <MenuItem onClick={handleSettingsClick}>
               <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
               Settings
             </MenuItem>
