@@ -19,8 +19,8 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store';
+import { useSelector } from 'react-redux';
+import { RootState, useAppDispatch } from '../store';
 import { switchRole, logout } from '../store/slices/authSlice';
 
 interface HeaderProps {
@@ -28,7 +28,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ title }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.auth.user);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -49,8 +49,8 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
     }
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(logout());
     handleMenuClose();
     navigate('/login');
   };

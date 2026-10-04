@@ -41,9 +41,16 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store';
-import { addRecord, updateRecord, deleteRecord, setFilters, clearFilters } from '../store/slices/machineRecordsSlice';
+import { useSelector } from 'react-redux';
+import { RootState, useAppDispatch } from '../store';
+import { 
+  fetchMachineRecords, 
+  createMachineRecord, 
+  updateMachineRecord, 
+  deleteMachineRecord, 
+  setFilters, 
+  clearFilters 
+} from '../store/slices/machineRecordsSlice';
 import { MachineRecord } from '../types';
 
 const statusColors: Record<string, { bg: string; color: string }> = {
@@ -64,10 +71,15 @@ const weekOptions = [
 const ROWS_PER_PAGE = 5;
 
 const MachineRecordsPage: React.FC = () => {
-  const dispatch = useDispatch();
-  const { records, filters } = useSelector((state: RootState) => state.machineRecords);
+  const dispatch = useAppDispatch();
+  const { records, filters, loading } = useSelector((state: RootState) => state.machineRecords);
   const user = useSelector((state: RootState) => state.auth.user);
   const isAdmin = user?.role === 'admin';
+
+  // Fetch records on mount
+  React.useEffect(() => {
+    dispatch(fetchMachineRecords());
+  }, [dispatch]);
 
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(true);
@@ -180,33 +192,43 @@ const MachineRecordsPage: React.FC = () => {
     setDialogOpen(true);
   };
 
-  const handleSave = () => {
-    if (editingRecord) {
-      dispatch(updateRecord({ ...editingRecord, ...formData } as MachineRecord));
-    } else {
-      const newRecord: MachineRecord = {
-        id: String(Date.now()),
-        subnet: formData.subnet || '',
-        date: formData.date || '',
-        trainer: formData.trainer || '',
-        machine: formData.machine || '',
-        dataset: formData.dataset || '',
-        epoch: formData.epoch || 0,
-        purpose: formData.purpose || '',
-        result: formData.result || '',
-        analysis: formData.analysis || '',
-        createdBy: user?.id || '',
-        status: (formData.status as MachineRecord['status']) || 'pending',
-      };
-      dispatch(addRecord(newRecord));
-      // Go to first page to show the new record (latest first)
-      setCurrentPage(1);
+  const handleSave = async () => {
+    try {
+      if (editingRecord) {
+        await dispatch(updateMachineRecord({ 
+          id: editingRecord.id, 
+          updates: formData 
+        })).unwrap();
+      } else {
+        const newRecord: Omit<MachineRecord, 'id'> = {
+          subnet: formData.subnet || '',
+          date: formData.date || '',
+          trainer: formData.trainer || '',
+          machine: formData.machine || '',
+          dataset: formData.dataset || '',
+          epoch: formData.epoch || 0,
+          purpose: formData.purpose || '',
+          result: formData.result || '',
+          analysis: formData.analysis || '',
+          createdBy: user?.id || '',
+          status: (formData.status as MachineRecord['status']) || 'pending',
+        };
+        await dispatch(createMachineRecord(newRecord)).unwrap();
+        // Go to first page to show the new record (latest first)
+        setCurrentPage(1);
+      }
+      setDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to save record:', error);
     }
-    setDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    dispatch(deleteRecord(id));
+  const handleDelete = async (id: string) => {
+    try {
+      await dispatch(deleteMachineRecord(id)).unwrap();
+    } catch (error) {
+      console.error('Failed to delete record:', error);
+    }
   };
 
   const canEdit = (record: MachineRecord) => {

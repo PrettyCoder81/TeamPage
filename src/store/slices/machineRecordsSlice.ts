@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { MachineRecord } from '../../types';
-import { mockMachineRecords } from '../../mock/data';
+import { api } from '../../api';
 
 interface MachineRecordsState {
   records: MachineRecord[];
@@ -14,10 +14,12 @@ interface MachineRecordsState {
     dateFrom: string;
     dateTo: string;
   };
+  loading: boolean;
+  error: string | null;
 }
 
 const initialState: MachineRecordsState = {
-  records: mockMachineRecords,
+  records: [],
   filters: {
     subnet: '',
     trainer: '',
@@ -28,24 +30,63 @@ const initialState: MachineRecordsState = {
     dateFrom: '',
     dateTo: '',
   },
+  loading: false,
+  error: null,
 };
+
+// Async Thunks
+export const fetchMachineRecords = createAsyncThunk(
+  'machineRecords/fetchAll',
+  async (_, { rejectWithValue }) => {
+    try {
+      const records = await api.machineRecords.getAll();
+      return records;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch records');
+    }
+  }
+);
+
+export const createMachineRecord = createAsyncThunk(
+  'machineRecords/create',
+  async (record: Omit<MachineRecord, 'id'>, { rejectWithValue }) => {
+    try {
+      const newRecord = await api.machineRecords.create(record);
+      return newRecord;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to create record');
+    }
+  }
+);
+
+export const updateMachineRecord = createAsyncThunk(
+  'machineRecords/update',
+  async ({ id, updates }: { id: string; updates: Partial<MachineRecord> }, { rejectWithValue }) => {
+    try {
+      const updatedRecord = await api.machineRecords.update(id, updates);
+      return updatedRecord;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update record');
+    }
+  }
+);
+
+export const deleteMachineRecord = createAsyncThunk(
+  'machineRecords/delete',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await api.machineRecords.delete(id);
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete record');
+    }
+  }
+);
 
 const machineRecordsSlice = createSlice({
   name: 'machineRecords',
   initialState,
   reducers: {
-    addRecord: (state, action: PayloadAction<MachineRecord>) => {
-      state.records.unshift(action.payload);
-    },
-    updateRecord: (state, action: PayloadAction<MachineRecord>) => {
-      const index = state.records.findIndex(r => r.id === action.payload.id);
-      if (index !== -1) {
-        state.records[index] = action.payload;
-      }
-    },
-    deleteRecord: (state, action: PayloadAction<string>) => {
-      state.records = state.records.filter(r => r.id !== action.payload);
-    },
     setFilters: (state, action: PayloadAction<Partial<MachineRecordsState['filters']>>) => {
       state.filters = { ...state.filters, ...action.payload };
     },
@@ -53,7 +94,38 @@ const machineRecordsSlice = createSlice({
       state.filters = { subnet: '', trainer: '', machine: '', status: '', week: '', search: '', dateFrom: '', dateTo: '' };
     },
   },
+  extraReducers: (builder) => {
+    builder
+      // Fetch all
+      .addCase(fetchMachineRecords.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMachineRecords.fulfilled, (state, action) => {
+        state.loading = false;
+        state.records = action.payload;
+      })
+      .addCase(fetchMachineRecords.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Create
+      .addCase(createMachineRecord.fulfilled, (state, action) => {
+        state.records.unshift(action.payload);
+      })
+      // Update
+      .addCase(updateMachineRecord.fulfilled, (state, action) => {
+        const index = state.records.findIndex(r => r.id === action.payload.id);
+        if (index !== -1) {
+          state.records[index] = action.payload;
+        }
+      })
+      // Delete
+      .addCase(deleteMachineRecord.fulfilled, (state, action) => {
+        state.records = state.records.filter(r => r.id !== action.payload);
+      });
+  },
 });
 
-export const { addRecord, updateRecord, deleteRecord, setFilters, clearFilters } = machineRecordsSlice.actions;
+export const { setFilters, clearFilters } = machineRecordsSlice.actions;
 export default machineRecordsSlice.reducer;
