@@ -1,11 +1,48 @@
-import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
+import { configureStore, combineReducers, Middleware } from '@reduxjs/toolkit';
 import authReducer from './slices/authSlice';
 import membersReducer from './slices/membersSlice';
 import machineRecordsReducer from './slices/machineRecordsSlice';
 import settingsReducer from './slices/settingsSlice';
 import profileReducer from './slices/profileSlice';
+
+const STORAGE_KEY = 'team-portal-state';
+
+// Custom persistence middleware - saves state to localStorage on every action
+const persistMiddleware: Middleware = (storeAPI) => (next) => (action) => {
+  const result = next(action);
+  // Save state after every action (debounced via requestAnimationFrame)
+  if (typeof window !== 'undefined') {
+    requestAnimationFrame(() => {
+      try {
+        const state = storeAPI.getState();
+        const toPersist = {
+          auth: state.auth,
+          members: state.members,
+          machineRecords: state.machineRecords,
+          settings: state.settings,
+          profile: state.profile,
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(toPersist));
+      } catch (e) {
+        console.warn('Failed to persist state:', e);
+      }
+    });
+  }
+  return result;
+};
+
+// Load persisted state from localStorage
+function loadPersistedState() {
+  if (typeof window === 'undefined') return undefined;
+  try {
+    const serialized = localStorage.getItem(STORAGE_KEY);
+    if (!serialized) return undefined;
+    return JSON.parse(serialized);
+  } catch (e) {
+    console.warn('Failed to load persisted state:', e);
+    return undefined;
+  }
+}
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -15,25 +52,16 @@ const rootReducer = combineReducers({
   profile: profileReducer,
 });
 
-const persistConfig = {
-  key: 'root',
-  storage,
-  whitelist: ['auth', 'members', 'machineRecords', 'settings', 'profile'],
-};
-
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+const persistedState = loadPersistedState();
 
 export const store = configureStore({
-  reducer: persistedReducer,
+  reducer: rootReducer,
+  preloadedState: persistedState,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-      },
-    }),
+      serializableCheck: false,
+    }).concat(persistMiddleware),
 });
-
-export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
