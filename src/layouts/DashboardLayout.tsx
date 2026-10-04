@@ -15,7 +15,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, currentPath
     <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
       <Sidebar currentPath={currentPath} onNavigate={onNavigate} />
       <Box sx={{ flexGrow: 1 }}>
-        <Header title={pageTitle} />
+        <Header title={pageTitle} onNavigate={onNavigate} />
         <Toolbar />
         <Box sx={{ p: 4 }}>
           {children}

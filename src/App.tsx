@@ -10,6 +10,8 @@ import MembersPage from './pages/MembersPage';
 import MachineRecordsPage from './pages/MachineRecordsPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
 
 const theme = createTheme({
   palette: {
@@ -49,6 +51,8 @@ const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/members': 'Members',
   '/machine-records': 'Machine Renting Report',
+  '/profile': 'Profile',
+  '/settings': 'Settings',
 };
 
 const AppContent: React.FC = () => {
@@ -71,6 +75,10 @@ const AppContent: React.FC = () => {
         return <MembersPage />;
       case '/machine-records':
         return <MachineRecordsPage />;
+      case '/profile':
+        return <ProfilePage />;
+      case '/settings':
+        return <SettingsPage />;
       default:
         return <DashboardPage />;
     }
