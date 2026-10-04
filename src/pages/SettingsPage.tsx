@@ -261,7 +261,7 @@ const SettingsPage: React.FC = () => {
                   <Select
                     value={settings.appearance.theme}
                     label="Theme"
-                    onChange={(e: SelectChangeEvent) => dispatch(updateAppearance({ theme: e.target.value as any }))}
+                    onChange={(e: SelectChangeEvent) => dispatch(updateAppearance({ theme: e.target.value as 'light' | 'dark' | 'system' }))}
                   >
                     <MenuItem value="light">Light</MenuItem>
                     <MenuItem value="dark">Dark</MenuItem>

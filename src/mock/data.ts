@@ -1,5 +1,42 @@
 import { Member, MachineRecord } from '../types';
 
+// Deterministic pseudo-random number generator (mulberry32)
+function seededRandom(seed: number): () => number {
+  return function () {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function generateWeeklyStatus(
+  defaultStatus: 'present' | 'absent' | 'leave' | 'remote',
+  seed: number
+): { [date: string]: 'present' | 'absent' | 'leave' | 'remote' } {
+  const status: { [date: string]: 'present' | 'absent' | 'leave' | 'remote' } = {};
+  const today = new Date();
+  const rand = seededRandom(seed);
+  for (let i = 0; i < 60; i++) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    const dayOfWeek = date.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      // Weekends - use default status
+      status[dateStr] = defaultStatus;
+    } else {
+      const r = rand();
+      if (r > 0.88) status[dateStr] = 'remote';
+      else if (r > 0.80) status[dateStr] = 'leave';
+      else if (r > 0.72) status[dateStr] = 'absent';
+      else status[dateStr] = defaultStatus;
+    }
+  }
+  return status;
+}
+
 export const mockMembers: Member[] = [
   {
     id: '1',
@@ -9,7 +46,7 @@ export const mockMembers: Member[] = [
     department: 'AI Research',
     status: 'active',
     performance: { tasksCompleted: 45, tasksTotal: 50, accuracy: 92, avgResponseTime: 2.3 },
-    weeklyStatus: generateWeeklyStatus('present'),
+    weeklyStatus: generateWeeklyStatus('present', 1),
   },
   {
     id: '2',
@@ -19,7 +56,7 @@ export const mockMembers: Member[] = [
     department: 'Data Analytics',
     status: 'active',
     performance: { tasksCompleted: 38, tasksTotal: 42, accuracy: 88, avgResponseTime: 1.8 },
-    weeklyStatus: generateWeeklyStatus('remote'),
+    weeklyStatus: generateWeeklyStatus('remote', 2),
   },
   {
     id: '3',
@@ -29,7 +66,7 @@ export const mockMembers: Member[] = [
     department: 'Infrastructure',
     status: 'on-leave',
     performance: { tasksCompleted: 30, tasksTotal: 35, accuracy: 95, avgResponseTime: 3.1 },
-    weeklyStatus: generateWeeklyStatus('leave'),
+    weeklyStatus: generateWeeklyStatus('leave', 3),
   },
   {
     id: '4',
@@ -39,7 +76,7 @@ export const mockMembers: Member[] = [
     department: 'AI Research',
     status: 'active',
     performance: { tasksCompleted: 52, tasksTotal: 55, accuracy: 90, avgResponseTime: 2.0 },
-    weeklyStatus: generateWeeklyStatus('present'),
+    weeklyStatus: generateWeeklyStatus('present', 4),
   },
   {
     id: '5',
@@ -49,7 +86,7 @@ export const mockMembers: Member[] = [
     department: 'AI Research',
     status: 'active',
     performance: { tasksCompleted: 20, tasksTotal: 25, accuracy: 85, avgResponseTime: 4.2 },
-    weeklyStatus: generateWeeklyStatus('present'),
+    weeklyStatus: generateWeeklyStatus('present', 5),
   },
   {
     id: '6',
@@ -59,36 +96,22 @@ export const mockMembers: Member[] = [
     department: 'Data Analytics',
     status: 'inactive',
     performance: { tasksCompleted: 15, tasksTotal: 20, accuracy: 78, avgResponseTime: 5.0 },
-    weeklyStatus: generateWeeklyStatus('absent'),
+    weeklyStatus: generateWeeklyStatus('absent', 6),
   },
 ];
 
-function generateWeeklyStatus(defaultStatus: 'present' | 'absent' | 'leave' | 'remote'): { [date: string]: 'present' | 'absent' | 'leave' | 'remote' } {
-  const status: { [date: string]: 'present' | 'absent' | 'leave' | 'remote' } = {};
-  const today = new Date();
-  for (let i = 0; i < 30; i++) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().split('T')[0];
-    const dayOfWeek = date.getDay();
-    if (dayOfWeek === 0 || dayOfWeek === 6) {
-      status[dateStr] = defaultStatus;
-    } else {
-      const rand = Math.random();
-      if (rand > 0.85) status[dateStr] = 'remote';
-      else if (rand > 0.75) status[dateStr] = 'leave';
-      else if (rand > 0.65) status[dateStr] = 'absent';
-      else status[dateStr] = defaultStatus;
-    }
-  }
-  return status;
+// Generate dates relative to today so they stay relevant
+function getRecentDate(daysAgo: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
+  return d.toISOString().split('T')[0];
 }
 
 export const mockMachineRecords: MachineRecord[] = [
   {
     id: '1',
     subnet: '192.168.1.0/24',
-    date: '2024-01-15',
+    date: getRecentDate(1),
     trainer: 'John Smith',
     machine: 'GPU-Server-01 (A100)',
     dataset: 'ImageNet-1K',
@@ -102,7 +125,7 @@ export const mockMachineRecords: MachineRecord[] = [
   {
     id: '2',
     subnet: '192.168.1.0/24',
-    date: '2024-01-16',
+    date: getRecentDate(2),
     trainer: 'Sarah Chen',
     machine: 'GPU-Server-02 (V100)',
     dataset: 'COCO-2017',
@@ -116,7 +139,7 @@ export const mockMachineRecords: MachineRecord[] = [
   {
     id: '3',
     subnet: '192.168.2.0/24',
-    date: '2024-01-17',
+    date: getRecentDate(3),
     trainer: 'Emily Davis',
     machine: 'GPU-Server-01 (A100)',
     dataset: 'Custom-NLP-v3',
@@ -130,7 +153,7 @@ export const mockMachineRecords: MachineRecord[] = [
   {
     id: '4',
     subnet: '192.168.2.0/24',
-    date: '2024-01-18',
+    date: getRecentDate(0),
     trainer: 'John Smith',
     machine: 'GPU-Server-03 (H100)',
     dataset: 'Audio-Speech-500h',
@@ -144,7 +167,7 @@ export const mockMachineRecords: MachineRecord[] = [
   {
     id: '5',
     subnet: '192.168.1.0/24',
-    date: '2024-01-19',
+    date: getRecentDate(5),
     trainer: 'Alex Wilson',
     machine: 'GPU-Server-02 (V100)',
     dataset: 'GAN-Faces-100K',
@@ -158,7 +181,7 @@ export const mockMachineRecords: MachineRecord[] = [
   {
     id: '6',
     subnet: '192.168.3.0/24',
-    date: '2024-01-20',
+    date: getRecentDate(7),
     trainer: 'Sarah Chen',
     machine: 'GPU-Server-01 (A100)',
     dataset: 'Medical-X-Ray-50K',
@@ -172,7 +195,7 @@ export const mockMachineRecords: MachineRecord[] = [
   {
     id: '7',
     subnet: '192.168.1.0/24',
-    date: '2024-01-21',
+    date: getRecentDate(0),
     trainer: 'Emily Davis',
     machine: 'GPU-Server-03 (H100)',
     dataset: 'LLM-Corpus-v2',
@@ -186,7 +209,7 @@ export const mockMachineRecords: MachineRecord[] = [
   {
     id: '8',
     subnet: '192.168.2.0/24',
-    date: '2024-01-22',
+    date: getRecentDate(10),
     trainer: 'John Smith',
     machine: 'GPU-Server-02 (V100)',
     dataset: 'Tabular-Sales-2023',
@@ -197,6 +220,34 @@ export const mockMachineRecords: MachineRecord[] = [
     createdBy: '1',
     status: 'completed',
   },
+  {
+    id: '9',
+    subnet: '192.168.1.0/24',
+    date: getRecentDate(14),
+    trainer: 'Sarah Chen',
+    machine: 'GPU-Server-01 (A100)',
+    dataset: 'Time-Series-Stock',
+    epoch: 80,
+    purpose: 'LSTM Stock Prediction',
+    result: 'MAPE: 3.2%',
+    analysis: 'Good accuracy on test set. Monitor for overfitting on volatile periods.',
+    createdBy: '2',
+    status: 'completed',
+  },
+  {
+    id: '10',
+    subnet: '192.168.3.0/24',
+    date: getRecentDate(20),
+    trainer: 'Emily Davis',
+    machine: 'GPU-Server-03 (H100)',
+    dataset: 'Video-Action-10K',
+    epoch: 40,
+    purpose: 'Action Recognition - 3D CNN',
+    result: 'Top-1: 87.5%',
+    analysis: 'Solid baseline. Try data augmentation for further improvement.',
+    createdBy: '4',
+    status: 'completed',
+  },
 ];
 
 export const dashboardStats = {
@@ -204,7 +255,7 @@ export const dashboardStats = {
   activeMembers: 4,
   totalMachines: 3,
   activeJobs: 2,
-  completedJobs: 4,
+  completedJobs: 6,
   failedJobs: 1,
   pendingJobs: 1,
   weeklyPerformance: [
