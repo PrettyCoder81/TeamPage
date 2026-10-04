@@ -4,16 +4,13 @@ import { User } from '../../types';
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
+  authPage: 'login' | 'register';
 }
 
 const initialState: AuthState = {
-  user: {
-    id: '1',
-    name: 'John Smith',
-    email: 'john.smith@team.com',
-    role: 'admin',
-  },
-  isAuthenticated: true,
+  user: null,
+  isAuthenticated: false,
+  authPage: 'login',
 };
 
 const authSlice = createSlice({
@@ -29,6 +26,9 @@ const authSlice = createSlice({
         state.user.role = action.payload;
       }
     },
+    setAuthPage: (state, action: PayloadAction<'login' | 'register'>) => {
+      state.authPage = action.payload;
+    },
     logout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
@@ -36,5 +36,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, switchRole, logout } = authSlice.actions;
+export const { setUser, switchRole, setAuthPage, logout } = authSlice.actions;
 export default authSlice.reducer;

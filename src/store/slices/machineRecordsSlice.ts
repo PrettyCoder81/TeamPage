@@ -11,6 +11,8 @@ interface MachineRecordsState {
     status: string;
     week: string;
     search: string;
+    dateFrom: string;
+    dateTo: string;
   };
 }
 
@@ -23,6 +25,8 @@ const initialState: MachineRecordsState = {
     status: '',
     week: '',
     search: '',
+    dateFrom: '',
+    dateTo: '',
   },
 };
 
@@ -46,7 +50,7 @@ const machineRecordsSlice = createSlice({
       state.filters = { ...state.filters, ...action.payload };
     },
     clearFilters: (state) => {
-      state.filters = { subnet: '', trainer: '', machine: '', status: '', week: '', search: '' };
+      state.filters = { subnet: '', trainer: '', machine: '', status: '', week: '', search: '', dateFrom: '', dateTo: '' };
     },
   },
 });
