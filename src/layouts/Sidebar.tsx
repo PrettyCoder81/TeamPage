@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Drawer,
   List,
@@ -21,19 +22,17 @@ import { RootState } from '../store';
 
 const drawerWidth = 280;
 
-interface SidebarProps {
-  currentPath: string;
-  onNavigate: (path: string) => void;
-}
-
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
   { path: '/members', label: 'Members', icon: <PeopleIcon /> },
   { path: '/machine-records', label: 'Machine Renting Report', icon: <PrecisionManufacturingIcon /> },
 ];
 
-const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate }) => {
+const Sidebar: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.auth.user);
+  const currentPath = location.pathname;
 
   return (
     <Drawer
@@ -80,38 +79,44 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPath, onNavigate }) => {
         </Typography>
       </Box>
       <List sx={{ px: 1.5 }}>
-        {navItems.map((item) => (
-          <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
-            <ListItemButton
-              onClick={() => onNavigate(item.path)}
-              sx={{
-                borderRadius: 2,
-                py: 1.2,
-                px: 2,
-                backgroundColor: currentPath === item.path ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
-                color: currentPath === item.path ? '#818cf8' : 'rgba(255,255,255,0.7)',
-                '&:hover': {
-                  backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                  color: '#fff',
-                },
-                '& .MuiListItemIcon-root': {
-                  color: 'inherit',
-                  minWidth: 40,
-                },
-              }}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText
-                primary={item.label}
-                slotProps={{ primary: { sx: { fontSize: '0.9rem', fontWeight: currentPath === item.path ? 600 : 400 } } }}
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
+        {navItems.map((item) => {
+          const isActive = currentPath === item.path;
+          return (
+            <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton
+                onClick={() => navigate(item.path)}
+                sx={{
+                  borderRadius: 2,
+                  py: 1.2,
+                  px: 2,
+                  backgroundColor: isActive ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
+                  color: isActive ? '#818cf8' : 'rgba(255,255,255,0.7)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    color: '#fff',
+                  },
+                  '& .MuiListItemIcon-root': {
+                    color: 'inherit',
+                    minWidth: 40,
+                  },
+                }}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText
+                  primary={item.label}
+                  slotProps={{ primary: { sx: { fontSize: '0.9rem', fontWeight: isActive ? 600 : 400 } } }}
+                />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
       </List>
       <Box sx={{ mt: 'auto', p: 2 }}>
         <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)', mb: 2 }} />
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 1 }}>
+        <Box
+          sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 1, cursor: 'pointer', borderRadius: 2, p: 1, '&:hover': { bgcolor: 'rgba(255,255,255,0.05)' } }}
+          onClick={() => navigate('/profile')}
+        >
           <Avatar sx={{ width: 36, height: 36, bgcolor: '#6366f1', fontSize: '0.9rem' }}>
             {user?.name?.charAt(0)}
           </Avatar>

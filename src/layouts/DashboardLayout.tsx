@@ -5,17 +5,15 @@ import Header from './Header';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  currentPath: string;
   pageTitle: string;
-  onNavigate: (path: string) => void;
 }
 
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, currentPath, pageTitle, onNavigate }) => {
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, pageTitle }) => {
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-      <Sidebar currentPath={currentPath} onNavigate={onNavigate} />
+      <Sidebar />
       <Box sx={{ flexGrow: 1 }}>
-        <Header title={pageTitle} onNavigate={onNavigate} />
+        <Header title={pageTitle} />
         <Toolbar />
         <Box sx={{ p: 4 }}>
           {children}

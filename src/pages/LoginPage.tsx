@@ -21,10 +21,12 @@ import LockIcon from '@mui/icons-material/Lock';
 import GoogleIcon from '@mui/icons-material/Google';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import { useDispatch } from 'react-redux';
-import { setUser, setAuthPage } from '../store/slices/authSlice';
+import { useNavigate } from 'react-router-dom';
+import { setUser } from '../store/slices/authSlice';
 
 const LoginPage: React.FC = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -231,7 +233,7 @@ const LoginPage: React.FC = () => {
                 Don't have an account?{' '}
               </Typography>
               <Button
-                onClick={() => dispatch(setAuthPage('register'))}
+                onClick={() => navigate('/register')}
                 size="small"
                 sx={{ textTransform: 'none', fontWeight: 600, color: '#6366f1', p: 0, minWidth: 'auto' }}
               >

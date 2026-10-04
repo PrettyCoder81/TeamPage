@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Provider } from 'react-redux';
-import { useSelector } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import { store, RootState } from './store';
 import DashboardLayout from './layouts/DashboardLayout';
 import DashboardPage from './pages/DashboardPage';
@@ -47,51 +47,110 @@ const theme = createTheme({
   },
 });
 
-const pageTitles: Record<string, string> = {
-  '/dashboard': 'Dashboard',
-  '/members': 'Members',
-  '/machine-records': 'Machine Renting Report',
-  '/profile': 'Profile',
-  '/settings': 'Settings',
+// Protected Route wrapper - redirects to login if not authenticated
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
 };
 
-const AppContent: React.FC = () => {
-  const [currentPath, setCurrentPath] = useState('/dashboard');
+// Public Route wrapper - redirects to dashboard if already authenticated
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-  const authPage = useSelector((state: RootState) => state.auth.authPage);
-
-  if (!isAuthenticated) {
-    if (authPage === 'register') {
-      return <RegisterPage />;
-    }
-    return <LoginPage />;
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
   }
+  return <>{children}</>;
+};
 
-  const renderPage = () => {
-    switch (currentPath) {
-      case '/dashboard':
-        return <DashboardPage />;
-      case '/members':
-        return <MembersPage />;
-      case '/machine-records':
-        return <MachineRecordsPage />;
-      case '/profile':
-        return <ProfilePage />;
-      case '/settings':
-        return <SettingsPage />;
-      default:
-        return <DashboardPage />;
-    }
-  };
-
+// Layout wrapper for authenticated pages
+const AuthenticatedLayout: React.FC<{ children: React.ReactNode; pageTitle: string }> = ({ children, pageTitle }) => {
   return (
-    <DashboardLayout
-      currentPath={currentPath}
-      pageTitle={pageTitles[currentPath] || 'Dashboard'}
-      onNavigate={setCurrentPath}
-    >
-      {renderPage()}
+    <DashboardLayout pageTitle={pageTitle}>
+      {children}
     </DashboardLayout>
+  );
+};
+
+const AppRoutes: React.FC = () => {
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <PublicRoute>
+            <RegisterPage />
+          </PublicRoute>
+        }
+      />
+
+      {/* Protected Routes */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout pageTitle="Dashboard">
+              <DashboardPage />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/members"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout pageTitle="Members">
+              <MembersPage />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/machine-records"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout pageTitle="Machine Renting Report">
+              <MachineRecordsPage />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout pageTitle="Profile">
+              <ProfilePage />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout pageTitle="Settings">
+              <SettingsPage />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Default redirect */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
   );
 };
 
@@ -100,7 +159,9 @@ const App: React.FC = () => {
     <Provider store={store}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <AppContent />
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
       </ThemeProvider>
     </Provider>
   );

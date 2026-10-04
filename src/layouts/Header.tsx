@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -24,11 +25,11 @@ import { switchRole, logout } from '../store/slices/authSlice';
 
 interface HeaderProps {
   title: string;
-  onNavigate?: (path: string) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ title, onNavigate }) => {
+const Header: React.FC<HeaderProps> = ({ title }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.auth.user);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
@@ -51,19 +52,16 @@ const Header: React.FC<HeaderProps> = ({ title, onNavigate }) => {
   const handleLogout = () => {
     dispatch(logout());
     handleMenuClose();
+    navigate('/login');
   };
 
   const handleProfileClick = () => {
-    if (onNavigate) {
-      onNavigate('/profile');
-    }
+    navigate('/profile');
     handleMenuClose();
   };
 
   const handleSettingsClick = () => {
-    if (onNavigate) {
-      onNavigate('/settings');
-    }
+    navigate('/settings');
     handleMenuClose();
   };
 
