@@ -23,11 +23,13 @@ import LockIcon from '@mui/icons-material/Lock';
 import PersonIcon from '@mui/icons-material/Person';
 import BadgeIcon from '@mui/icons-material/Badge';
 import { useDispatch } from 'react-redux';
-import { setUser, setAuthPage } from '../store/slices/authSlice';
+import { useNavigate } from 'react-router-dom';
+import { setUser } from '../store/slices/authSlice';
 import { Role } from '../types';
 
 const RegisterPage: React.FC = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -237,7 +239,7 @@ const RegisterPage: React.FC = () => {
                 Already have an account?{' '}
               </Typography>
               <Button
-                onClick={() => dispatch(setAuthPage('login'))}
+                onClick={() => navigate('/login')}
                 size="small"
                 sx={{ textTransform: 'none', fontWeight: 600, color: '#6366f1', p: 0, minWidth: 'auto' }}
               >
