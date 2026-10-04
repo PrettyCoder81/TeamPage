@@ -27,6 +27,8 @@ import {
   Collapse,
   InputAdornment,
   SelectChangeEvent,
+  Pagination,
+  Stack,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -59,6 +61,8 @@ const weekOptions = [
   { value: '4', label: 'Week 4 (22-28)' },
 ];
 
+const ROWS_PER_PAGE = 5;
+
 const MachineRecordsPage: React.FC = () => {
   const dispatch = useDispatch();
   const { records, filters } = useSelector((state: RootState) => state.machineRecords);
@@ -69,6 +73,7 @@ const MachineRecordsPage: React.FC = () => {
   const [showFilters, setShowFilters] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<MachineRecord | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState<Partial<MachineRecord>>({
     subnet: '',
     date: new Date().toISOString().split('T')[0],
@@ -83,7 +88,7 @@ const MachineRecordsPage: React.FC = () => {
   });
 
   const filteredRecords = useMemo(() => {
-    return records.filter((record) => {
+    const filtered = records.filter((record) => {
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
         const matchesSearch =
@@ -110,22 +115,46 @@ const MachineRecordsPage: React.FC = () => {
       }
       return true;
     });
+
+    // Sort by date descending (latest first)
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return dateB - dateA;
+    });
   }, [records, filters]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredRecords.length / ROWS_PER_PAGE);
+  const paginatedRecords = useMemo(() => {
+    const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+    const endIndex = startIndex + ROWS_PER_PAGE;
+    return filteredRecords.slice(startIndex, endIndex);
+  }, [filteredRecords, currentPage]);
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = (field: string, value: string) => {
+    dispatch(setFilters({ [field]: value }));
+    setCurrentPage(1);
+  };
 
   const uniqueTrainers = useMemo(() => [...new Set(records.map(r => r.trainer))], [records]);
   const uniqueMachines = useMemo(() => [...new Set(records.map(r => r.machine))], [records]);
   const uniqueSubnets = useMemo(() => [...new Set(records.map(r => r.subnet))], [records]);
 
-  const handleFilterChange = (field: string, value: string) => {
-    dispatch(setFilters({ [field]: value }));
-  };
-
   const handleDateFromChange = (date: Dayjs | null) => {
     dispatch(setFilters({ dateFrom: date ? date.format('YYYY-MM-DD') : '' }));
+    setCurrentPage(1);
   };
 
   const handleDateToChange = (date: Dayjs | null) => {
     dispatch(setFilters({ dateTo: date ? date.format('YYYY-MM-DD') : '' }));
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, page: number) => {
+    setCurrentPage(page);
+    setExpandedRow(null);
   };
 
   const handleOpenAddDialog = () => {
@@ -170,6 +199,8 @@ const MachineRecordsPage: React.FC = () => {
         status: (formData.status as MachineRecord['status']) || 'pending',
       };
       dispatch(addRecord(newRecord));
+      // Go to first page to show the new record (latest first)
+      setCurrentPage(1);
     }
     setDialogOpen(false);
   };
@@ -230,7 +261,10 @@ const MachineRecordsPage: React.FC = () => {
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button
                   size="small"
-                  onClick={() => dispatch(clearFilters())}
+                  onClick={() => {
+                    dispatch(clearFilters());
+                    setCurrentPage(1);
+                  }}
                   sx={{ textTransform: 'none', color: '#64748b' }}
                 >
                   Clear All
@@ -373,16 +407,40 @@ const MachineRecordsPage: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredRecords.map((record) => (
+                {paginatedRecords.map((record, index) => {
+                  const isLatest = currentPage === 1 && index === 0;
+                  return (
                   <React.Fragment key={record.id}>
-                    <TableRow hover sx={{ cursor: 'pointer' }} onClick={() => setExpandedRow(expandedRow === record.id ? null : record.id)}>
+                    <TableRow 
+                      hover 
+                      sx={{ 
+                        cursor: 'pointer',
+                        bgcolor: isLatest ? 'rgba(99, 102, 241, 0.04)' : 'transparent',
+                      }} 
+                      onClick={() => setExpandedRow(expandedRow === record.id ? null : record.id)}
+                    >
                       <TableCell>
                         <IconButton size="small">
                           {expandedRow === record.id ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
                         </IconButton>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2">{record.date}</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="body2">{record.date}</Typography>
+                          {isLatest && (
+                            <Chip 
+                              label="Latest" 
+                              size="small" 
+                              sx={{ 
+                                bgcolor: '#6366f1', 
+                                color: '#fff', 
+                                fontWeight: 600, 
+                                fontSize: '0.65rem',
+                                height: 20,
+                              }} 
+                            />
+                          )}
+                        </Box>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
@@ -485,8 +543,9 @@ const MachineRecordsPage: React.FC = () => {
                       </TableCell>
                     </TableRow>
                   </React.Fragment>
-                ))}
-                {filteredRecords.length === 0 && (
+                  );
+                })}
+                {paginatedRecords.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={9} sx={{ textAlign: 'center', py: 6 }}>
                       <Typography variant="body1" color="text.secondary">
@@ -498,6 +557,35 @@ const MachineRecordsPage: React.FC = () => {
               </TableBody>
             </Table>
           </TableContainer>
+          
+          {/* Pagination */}
+          {filteredRecords.length > 0 && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, py: 2, borderTop: '1px solid #f1f5f9' }}>
+              <Typography variant="body2" color="text.secondary">
+                Showing {((currentPage - 1) * ROWS_PER_PAGE) + 1} to {Math.min(currentPage * ROWS_PER_PAGE, filteredRecords.length)} of {filteredRecords.length} records
+              </Typography>
+              <Stack spacing={2}>
+                <Pagination
+                  count={totalPages}
+                  page={currentPage}
+                  onChange={handlePageChange}
+                  color="primary"
+                  shape="rounded"
+                  showFirstButton
+                  showLastButton
+                  sx={{
+                    '& .MuiPaginationItem-root': {
+                      color: '#64748b',
+                    },
+                    '& .Mui-selected': {
+                      backgroundColor: '#6366f1 !important',
+                      color: '#fff !important',
+                    },
+                  }}
+                />
+              </Stack>
+            </Box>
+          )}
         </Card>
 
         {/* Add/Edit Dialog */}
