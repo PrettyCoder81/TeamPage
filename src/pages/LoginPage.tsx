@@ -20,38 +20,36 @@ import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import GoogleIcon from '@mui/icons-material/Google';
 import GitHubIcon from '@mui/icons-material/GitHub';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../store';
 import { useNavigate } from 'react-router-dom';
-import { setUser } from '../store/slices/authSlice';
+import { login, clearError } from '../store/slices/authSlice';
 
 const LoginPage: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { loading, error: authError } = useAppSelector((state) => state.auth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    dispatch(clearError());
 
     if (!email || !password) {
       setError('Please fill in all fields');
       return;
     }
 
-    // Mock login - accept any credentials
-    const isAdmin = email.includes('admin');
-    dispatch(
-      setUser({
-        id: '1',
-        name: isAdmin ? 'Admin User' : email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        email: email,
-        role: isAdmin ? 'admin' : 'user',
-      })
-    );
+    try {
+      await dispatch(login({ email, password })).unwrap();
+      navigate('/dashboard');
+    } catch (err) {
+      // Error is handled by Redux state
+    }
   };
 
   return (
@@ -97,9 +95,9 @@ const LoginPage: React.FC = () => {
         {/* Login Card */}
         <Card sx={{ borderRadius: 4, boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
           <CardContent sx={{ p: 4 }}>
-            {error && (
+            {(error || authError) && (
               <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-                {error}
+                {error || authError}
               </Alert>
             )}
 
@@ -173,6 +171,7 @@ const LoginPage: React.FC = () => {
                 type="submit"
                 variant="contained"
                 size="large"
+                disabled={loading}
                 sx={{
                   bgcolor: '#6366f1',
                   '&:hover': { bgcolor: '#4f46e5' },
@@ -183,7 +182,7 @@ const LoginPage: React.FC = () => {
                   boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)',
                 }}
               >
-                Sign In
+                {loading ? 'Signing In...' : 'Sign In'}
               </Button>
             </form>
 

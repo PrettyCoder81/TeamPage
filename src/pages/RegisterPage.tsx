@@ -22,14 +22,15 @@ import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import PersonIcon from '@mui/icons-material/Person';
 import BadgeIcon from '@mui/icons-material/Badge';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../store';
 import { useNavigate } from 'react-router-dom';
-import { setUser } from '../store/slices/authSlice';
+import { register, clearError } from '../store/slices/authSlice';
 import { Role } from '../types';
 
 const RegisterPage: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { loading, error: authError } = useAppSelector((state) => state.auth);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,9 +39,10 @@ const RegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    dispatch(clearError());
 
     if (!name || !email || !password || !confirmPassword) {
       setError('Please fill in all fields');
@@ -57,15 +59,12 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
-    // Mock registration
-    dispatch(
-      setUser({
-        id: String(Date.now()),
-        name: name,
-        email: email,
-        role: role,
-      })
-    );
+    try {
+      await dispatch(register({ name, email, password, role })).unwrap();
+      navigate('/dashboard');
+    } catch (err) {
+      // Error is handled by Redux state
+    }
   };
 
   return (
@@ -111,9 +110,9 @@ const RegisterPage: React.FC = () => {
         {/* Register Card */}
         <Card sx={{ borderRadius: 4, boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
           <CardContent sx={{ p: 4 }}>
-            {error && (
+            {(error || authError) && (
               <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-                {error}
+                {error || authError}
               </Alert>
             )}
 
@@ -218,6 +217,7 @@ const RegisterPage: React.FC = () => {
                 type="submit"
                 variant="contained"
                 size="large"
+                disabled={loading}
                 sx={{
                   bgcolor: '#6366f1',
                   '&:hover': { bgcolor: '#4f46e5' },
@@ -228,7 +228,7 @@ const RegisterPage: React.FC = () => {
                   boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)',
                 }}
               >
-                Create Account
+                {loading ? 'Creating Account...' : 'Create Account'}
               </Button>
             </form>
 
