@@ -11,7 +11,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Avatar,
   Chip,
   IconButton,
@@ -39,16 +38,11 @@ const dayStatusColors: Record<string, string> = {
 
 const MembersPage: React.FC = () => {
   const members = useSelector((state: RootState) => state.members.members);
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   const daysInMonth = useMemo(() => {
     return new Date(selectedYear, selectedMonth + 1, 0).getDate();
-  }, [selectedMonth, selectedYear]);
-
-  const firstDayOfMonth = useMemo(() => {
-    return new Date(selectedYear, selectedMonth, 1).getDay();
   }, [selectedMonth, selectedYear]);
 
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
