@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Provider } from 'react-redux';
-import { store } from './store';
+import { useSelector } from 'react-redux';
+import { store, RootState } from './store';
 import DashboardLayout from './layouts/DashboardLayout';
 import DashboardPage from './pages/DashboardPage';
 import MembersPage from './pages/MembersPage';
 import MachineRecordsPage from './pages/MachineRecordsPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 
 const theme = createTheme({
   palette: {
@@ -48,8 +51,17 @@ const pageTitles: Record<string, string> = {
   '/machine-records': 'Machine Renting Report',
 };
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [currentPath, setCurrentPath] = useState('/dashboard');
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const authPage = useSelector((state: RootState) => state.auth.authPage);
+
+  if (!isAuthenticated) {
+    if (authPage === 'register') {
+      return <RegisterPage />;
+    }
+    return <LoginPage />;
+  }
 
   const renderPage = () => {
     switch (currentPath) {
@@ -65,16 +77,22 @@ const App: React.FC = () => {
   };
 
   return (
+    <DashboardLayout
+      currentPath={currentPath}
+      pageTitle={pageTitles[currentPath] || 'Dashboard'}
+      onNavigate={setCurrentPath}
+    >
+      {renderPage()}
+    </DashboardLayout>
+  );
+};
+
+const App: React.FC = () => {
+  return (
     <Provider store={store}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <DashboardLayout
-          currentPath={currentPath}
-          pageTitle={pageTitles[currentPath] || 'Dashboard'}
-          onNavigate={setCurrentPath}
-        >
-          {renderPage()}
-        </DashboardLayout>
+        <AppContent />
       </ThemeProvider>
     </Provider>
   );

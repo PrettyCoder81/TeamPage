@@ -20,7 +20,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
-import { switchRole } from '../store/slices/authSlice';
+import { switchRole, logout } from '../store/slices/authSlice';
 
 interface HeaderProps {
   title: string;
@@ -45,6 +45,11 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
     } else {
       dispatch(switchRole('admin'));
     }
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    handleMenuClose();
   };
 
   return (
@@ -111,7 +116,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
               Settings
             </MenuItem>
             <Divider />
-            <MenuItem onClick={handleMenuClose} sx={{ color: '#ef4444' }}>
+            <MenuItem onClick={handleLogout} sx={{ color: '#ef4444' }}>
               <ListItemIcon><LogoutIcon fontSize="small" sx={{ color: '#ef4444' }} /></ListItemIcon>
               Logout
             </MenuItem>
