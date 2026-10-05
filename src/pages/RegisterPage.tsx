@@ -59,9 +59,11 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
+
+    
     try {
-      await dispatch(register({ name, email, password, role })).unwrap();
-      navigate('/dashboard');
+      await dispatch(register({ name, email, password})).unwrap();
+      navigate('/login');
     } catch (err) {
       // Error is handled by Redux state
     }
@@ -152,7 +154,7 @@ const RegisterPage: React.FC = () => {
                 }}
               />
 
-              <FormControl fullWidth sx={{ mb: 2 }}>
+              {/* <FormControl fullWidth sx={{ mb: 2 }}>
                 <InputLabel>Role</InputLabel>
                 <Select
                   value={role}
@@ -167,7 +169,7 @@ const RegisterPage: React.FC = () => {
                   <MenuItem value="user">User</MenuItem>
                   <MenuItem value="admin">Admin</MenuItem>
                 </Select>
-              </FormControl>
+              </FormControl> */}
 
               <TextField
                 fullWidth
