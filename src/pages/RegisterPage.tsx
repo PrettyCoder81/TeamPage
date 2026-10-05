@@ -26,6 +26,7 @@ import { useAppDispatch, useAppSelector } from '../store';
 import { useNavigate } from 'react-router-dom';
 import { register, clearError } from '../store/slices/authSlice';
 import { Role } from '../types';
+import { toastActions } from '../utils/toast';
 
 const RegisterPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -64,6 +65,7 @@ const RegisterPage: React.FC = () => {
     try {
       await dispatch(register({ name, email, password})).unwrap();
       navigate('/login');
+      toastActions.registerSuccess();
     } catch (err) {
       // Error is handled by Redux state
     }

@@ -29,6 +29,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
 import { updateNotifications, updateAppearance, updateSecurity } from '../store/slices/settingsSlice';
 import { setUser } from '../store/slices/authSlice';
+import { toastActions } from '../utils/toast';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -64,24 +65,24 @@ const SettingsPage: React.FC = () => {
   const handleSaveAccount = () => {
     if (user) {
       dispatch(setUser({ ...user, name, email }));
-      setSnackbar({ open: true, message: 'Account settings saved', severity: 'success' });
+      toastActions.settingsUpdated();
     }
   };
 
   const handleSaveNotifications = () => {
-    setSnackbar({ open: true, message: 'Notification preferences saved', severity: 'success' });
+    toastActions.settingsUpdated();
   };
 
   const handleSaveAppearance = () => {
-    setSnackbar({ open: true, message: 'Appearance settings saved', severity: 'success' });
+    toastActions.settingsUpdated();
   };
 
   const handleSaveSecurity = () => {
     if (newPassword && newPassword !== confirmPassword) {
-      setSnackbar({ open: true, message: 'Passwords do not match', severity: 'error' });
+      toastActions.error('Passwords do not match');
       return;
     }
-    setSnackbar({ open: true, message: 'Security settings saved', severity: 'success' });
+    toastActions.settingsUpdated();
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
