@@ -32,6 +32,7 @@ import StarIcon from '@mui/icons-material/Star';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
 import { updateProfile, addSkill, removeSkill, updateSocialLinks } from '../store/slices/profileSlice';
+import { toastActions } from '../utils/toast';
 
 const ProfilePage: React.FC = () => {
   const dispatch = useDispatch();
@@ -52,7 +53,7 @@ const ProfilePage: React.FC = () => {
   const handleSave = () => {
     dispatch(updateProfile(editData));
     setIsEditing(false);
-    setSnackbar({ open: true, message: 'Profile updated successfully', severity: 'success' });
+    toastActions.profileUpdated();
   };
 
   const handleCancel = () => {
