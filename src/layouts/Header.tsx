@@ -22,6 +22,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../store';
 import { switchRole, logout } from '../store/slices/authSlice';
+import { toastActions } from '../utils/toast';
 
 interface HeaderProps {
   title: string;
@@ -51,6 +52,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
 
   const handleLogout = async () => {
     await dispatch(logout());
+    toastActions.logoutSuccess();
     handleMenuClose();
     navigate('/login');
   };

@@ -52,6 +52,7 @@ import {
   clearFilters 
 } from '../store/slices/machineRecordsSlice';
 import { MachineRecord } from '../types';
+import { toastActions } from '../utils/toast';
 
 const statusColors: Record<string, { bg: string; color: string }> = {
   completed: { bg: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' },
@@ -199,6 +200,7 @@ const MachineRecordsPage: React.FC = () => {
           id: editingRecord.id, 
           updates: formData 
         })).unwrap();
+        toastActions.recordUpdated();
       } else {
         const newRecord: Omit<MachineRecord, 'id'> = {
           subnet: formData.subnet || '',
@@ -214,11 +216,13 @@ const MachineRecordsPage: React.FC = () => {
           status: (formData.status as MachineRecord['status']) || 'pending',
         };
         await dispatch(createMachineRecord(newRecord)).unwrap();
+        toastActions.recordCreated();
         // Go to first page to show the new record (latest first)
         setCurrentPage(1);
       }
       setDialogOpen(false);
     } catch (error) {
+      toastActions.recordError(editingRecord ? 'update' : 'create');
       console.error('Failed to save record:', error);
     }
   };
@@ -226,7 +230,9 @@ const MachineRecordsPage: React.FC = () => {
   const handleDelete = async (id: string) => {
     try {
       await dispatch(deleteMachineRecord(id)).unwrap();
+      toastActions.recordDeleted();
     } catch (error) {
+      toastActions.recordError('delete');
       console.error('Failed to delete record:', error);
     }
   };

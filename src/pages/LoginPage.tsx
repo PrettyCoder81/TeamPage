@@ -23,6 +23,7 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import { useAppDispatch, useAppSelector } from '../store';
 import { useNavigate } from 'react-router-dom';
 import { login, clearError } from '../store/slices/authSlice';
+import { toastActions } from '../utils/toast';
 
 const LoginPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -46,6 +47,7 @@ const LoginPage: React.FC = () => {
 
     try {
       await dispatch(login({ email, password })).unwrap();
+      toastActions.loginSuccess();
       navigate('/dashboard');
     } catch (err) {
       // Error is handled by Redux state
