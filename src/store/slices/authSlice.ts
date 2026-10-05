@@ -35,7 +35,8 @@ export const register = createAsyncThunk(
   async (userData: { name: string; email: string; password: string;}, { rejectWithValue }) => {
     try {
       const response = await api.auth.register(userData);
-      return response;
+      localStorage.setItem('authToken', response.token);
+      return response.user;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Registration failed');
     }

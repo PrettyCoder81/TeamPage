@@ -30,7 +30,7 @@ export const mockApi = {
       throw new Error('Invalid credentials');
     },
 
-    register: async (userData: { name: string; email: string; password: string; }): Promise<User> => {
+    register: async (userData: { name: string; email: string; password: string; }): Promise<{ user: User; token: string }> => {
       await delay(500);
       
       const user: User = {
@@ -40,7 +40,10 @@ export const mockApi = {
         role: 'user',
       };
       
-      return user;
+      return {
+        user,
+        token: 'mock-jwt-token-' + Date.now(),
+      };
     },
 
     logout: async (): Promise<void> => {

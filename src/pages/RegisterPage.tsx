@@ -63,7 +63,7 @@ const RegisterPage: React.FC = () => {
     
     try {
       await dispatch(register({ name, email, password})).unwrap();
-      navigate('/login');
+      // navigate('/login');
       toastActions.registerSuccess();
     } catch (err) {
       // Error is handled by Redux state
