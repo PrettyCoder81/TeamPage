@@ -60,7 +60,6 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
-
     
     try {
       await dispatch(register({ name, email, password})).unwrap();
