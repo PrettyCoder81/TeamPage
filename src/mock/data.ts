@@ -11,6 +11,21 @@ function seededRandom(seed: number): () => number {
   };
 }
 
+function getEstDateString(date: Date): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+
+  const year = parts.find((part) => part.type === 'year')?.value ?? '2024';
+  const month = parts.find((part) => part.type === 'month')?.value ?? '01';
+  const day = parts.find((part) => part.type === 'day')?.value ?? '01';
+
+  return `${year}-${month}-${day}`;
+}
+
 function generateWeeklyStatus(
   defaultStatus: 'present' | 'absent' | 'leave' | 'remote',
   seed: number
@@ -21,7 +36,7 @@ function generateWeeklyStatus(
   for (let i = 0; i < 60; i++) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = getEstDateString(date);
     const dayOfWeek = date.getDay();
     if (dayOfWeek === 0 || dayOfWeek === 6) {
       // Weekends - use default status
@@ -119,7 +134,6 @@ export const mockMachineRecords: MachineRecord[] = [
     purpose: 'Model Training - ResNet50',
     result: 'Accuracy: 94.2%, Loss: 0.15',
     analysis: 'Model converged well. Consider increasing learning rate for faster convergence.',
-    createdBy: '1',
     status: 'completed',
   },
   {
@@ -133,7 +147,6 @@ export const mockMachineRecords: MachineRecord[] = [
     purpose: 'Object Detection - YOLOv8',
     result: 'mAP: 0.78, FPS: 45',
     analysis: 'Detection accuracy good but FPS below target. Optimize post-processing.',
-    createdBy: '2',
     status: 'completed',
   },
   {
@@ -147,7 +160,6 @@ export const mockMachineRecords: MachineRecord[] = [
     purpose: 'Fine-tuning BERT for classification',
     result: 'F1-Score: 0.91',
     analysis: 'Excellent performance. Deploy to staging for A/B testing.',
-    createdBy: '4',
     status: 'completed',
   },
   {
@@ -161,7 +173,6 @@ export const mockMachineRecords: MachineRecord[] = [
     purpose: 'ASR Model Training',
     result: 'WER: 5.2%',
     analysis: 'Running - Expected completion in 4 hours.',
-    createdBy: '1',
     status: 'running',
   },
   {
@@ -175,7 +186,6 @@ export const mockMachineRecords: MachineRecord[] = [
     purpose: 'GAN Training - Face Generation',
     result: 'FID: 12.3',
     analysis: 'Mode collapse detected at epoch 120. Restarting with different initialization.',
-    createdBy: '5',
     status: 'failed',
   },
   {
@@ -189,7 +199,6 @@ export const mockMachineRecords: MachineRecord[] = [
     purpose: 'Medical Image Classification',
     result: 'Pending',
     analysis: 'Scheduled for weekend batch processing.',
-    createdBy: '2',
     status: 'pending',
   },
   {
@@ -203,7 +212,6 @@ export const mockMachineRecords: MachineRecord[] = [
     purpose: 'LLM Pre-training',
     result: 'Loss: 2.1 (decreasing)',
     analysis: 'Early stage. Loss curve looks healthy. Monitor GPU utilization.',
-    createdBy: '4',
     status: 'running',
   },
   {
@@ -217,7 +225,6 @@ export const mockMachineRecords: MachineRecord[] = [
     purpose: 'XGBoost Hyperparameter Tuning',
     result: 'RMSE: 0.023, R²: 0.97',
     analysis: 'Best model found. Save and prepare for production deployment.',
-    createdBy: '1',
     status: 'completed',
   },
   {
@@ -231,7 +238,6 @@ export const mockMachineRecords: MachineRecord[] = [
     purpose: 'LSTM Stock Prediction',
     result: 'MAPE: 3.2%',
     analysis: 'Good accuracy on test set. Monitor for overfitting on volatile periods.',
-    createdBy: '2',
     status: 'completed',
   },
   {
@@ -245,7 +251,6 @@ export const mockMachineRecords: MachineRecord[] = [
     purpose: 'Action Recognition - 3D CNN',
     result: 'Top-1: 87.5%',
     analysis: 'Solid baseline. Try data augmentation for further improvement.',
-    createdBy: '4',
     status: 'completed',
   },
   {
@@ -259,7 +264,6 @@ export const mockMachineRecords: MachineRecord[] = [
     purpose: 'Action Recognition - 3D CNN',
     result: 'Top-1: 87.5%',
     analysis: 'Solid baseline. Try data augmentation for further improvement.',
-    createdBy: '4',
     status: 'completed',
   },
   {
@@ -273,7 +277,6 @@ export const mockMachineRecords: MachineRecord[] = [
     purpose: 'Action Recognition - 3D CNN',
     result: 'Top-1: 87.5%',
     analysis: 'Solid baseline. Try data augmentation for further improvement.',
-    createdBy: '4',
     status: 'completed',
   },
 ];

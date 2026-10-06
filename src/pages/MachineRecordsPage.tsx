@@ -69,7 +69,40 @@ const weekOptions = [
   { value: '4', label: 'Week 4 (22-28)' },
 ];
 
+const getEstDateString = (date: Date | string = new Date()) => {
+  const targetDate = typeof date === 'string' ? new Date(`${date}T12:00:00`) : date;
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(targetDate);
+
+  const year = parts.find((part) => part.type === 'year')?.value ?? '2024';
+  const month = parts.find((part) => part.type === 'month')?.value ?? '01';
+  const day = parts.find((part) => part.type === 'day')?.value ?? '01';
+
+  return `${year}-${month}-${day}`;
+};
+
 const ROWS_PER_PAGE = 5;
+
+const validateMachineRecordForm = (data: Partial<MachineRecord>) => {
+  const errors: Record<string, string> = {};
+  const requiredText = (value?: string) => (value ?? '').trim();
+
+  if (!requiredText(data.subnet)) errors.subnet = 'Subnet is required';
+  if (!requiredText(data.date)) errors.date = 'Date is required';
+  if (!requiredText(data.machine)) errors.machine = 'Machine is required';
+  if (!requiredText(data.dataset)) errors.dataset = 'Dataset is required';
+  if (Number(data.epoch) <= 0) errors.epoch = 'Epoch must be greater than 0';
+  if (!requiredText(data.purpose)) errors.purpose = 'Purpose is required';
+  if (!requiredText(data.result)) errors.result = 'Result is required';
+  if (!requiredText(data.analysis)) errors.analysis = 'Analysis is required';
+  if (!data.status) errors.status = 'Status is required';
+
+  return errors;
+};
 
 const MachineRecordsPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -87,9 +120,10 @@ const MachineRecordsPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<MachineRecord | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<Partial<MachineRecord>>({
     subnet: '',
-    date: new Date().toISOString().split('T')[0],
+    date: getEstDateString(),
     trainer: '',
     machine: '',
     dataset: '',
@@ -116,7 +150,7 @@ const MachineRecordsPage: React.FC = () => {
       if (filters.machine && record.machine !== filters.machine) return false;
       if (filters.status && record.status !== filters.status) return false;
       if (filters.week) {
-        const day = new Date(record.date).getDate();
+        const day = Number(record.date.split('-')[2]);
         const weekNum = Math.ceil(day / 7);
         if (weekNum !== parseInt(filters.week)) return false;
       }
@@ -172,9 +206,10 @@ const MachineRecordsPage: React.FC = () => {
 
   const handleOpenAddDialog = () => {
     setEditingRecord(null);
+    setFormErrors({});
     setFormData({
       subnet: '',
-      date: new Date().toISOString().split('T')[0],
+      date: getEstDateString(),
       trainer: user?.name || '',
       machine: '',
       dataset: '',
@@ -189,30 +224,51 @@ const MachineRecordsPage: React.FC = () => {
 
   const handleOpenEditDialog = (record: MachineRecord) => {
     setEditingRecord(record);
+    setFormErrors({});
     setFormData(record);
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
+    const validationErrors = validateMachineRecordForm(formData);
+    setFormErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      toastActions.error('Please complete all required fields before saving the machine record.');
+      return;
+    }
+
     try {
       if (editingRecord) {
+        const updates: Partial<MachineRecord> = {
+          subnet: (formData.subnet ?? editingRecord.subnet).trim(),
+          date: formData.date ?? editingRecord.date,
+          trainer: formData.trainer ?? editingRecord.trainer,
+          machine: (formData.machine ?? editingRecord.machine).trim(),
+          dataset: (formData.dataset ?? editingRecord.dataset).trim(),
+          epoch: Number(formData.epoch) > 0 ? Number(formData.epoch) : editingRecord.epoch,
+          purpose: (formData.purpose ?? editingRecord.purpose).trim(),
+          result: (formData.result ?? editingRecord.result).trim(),
+          analysis: (formData.analysis ?? editingRecord.analysis).trim(),
+          status: (formData.status as MachineRecord['status']) ?? editingRecord.status,
+        };
+
         await dispatch(updateMachineRecord({ 
           id: editingRecord.id, 
-          updates: formData 
+          updates,
         })).unwrap();
         toastActions.recordUpdated();
       } else {
         const newRecord: Omit<MachineRecord, 'id'> = {
           subnet: formData.subnet || '',
           date: formData.date || '',
-          trainer: formData.trainer || '',
+          trainer: user?.id || '',
           machine: formData.machine || '',
           dataset: formData.dataset || '',
           epoch: formData.epoch || 0,
           purpose: formData.purpose || '',
           result: formData.result || '',
           analysis: formData.analysis || '',
-          createdBy: user?.id || '',
           status: (formData.status as MachineRecord['status']) || 'pending',
         };
         await dispatch(createMachineRecord(newRecord)).unwrap();
@@ -220,6 +276,7 @@ const MachineRecordsPage: React.FC = () => {
         // Go to first page to show the new record (latest first)
         setCurrentPage(1);
       }
+      setFormErrors({});
       setDialogOpen(false);
     } catch (error) {
       toastActions.recordError(editingRecord ? 'update' : 'create');
@@ -238,7 +295,7 @@ const MachineRecordsPage: React.FC = () => {
   };
 
   const canEdit = (record: MachineRecord) => {
-    return isAdmin || record.createdBy === user?.id;
+    return isAdmin || record.trainer === user?.id;
   };
 
   return (
@@ -510,7 +567,7 @@ const MachineRecordsPage: React.FC = () => {
                                   <EditIcon fontSize="small" sx={{ color: '#6366f1' }} />
                                 </IconButton>
                               </Tooltip>
-                              {(isAdmin || record.createdBy === user?.id) && (
+                              {(isAdmin || record.trainer === user?.id) && (
                                 <Tooltip title="Delete">
                                   <IconButton size="small" onClick={() => handleDelete(record.id)}>
                                     <DeleteIcon fontSize="small" sx={{ color: '#ef4444' }} />
@@ -634,8 +691,13 @@ const MachineRecordsPage: React.FC = () => {
                   fullWidth
                   label="Subnet"
                   value={formData.subnet}
-                  onChange={(e) => setFormData({ ...formData, subnet: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, subnet: e.target.value });
+                    setFormErrors((prev) => ({ ...prev, subnet: '' }));
+                  }}
                   size="small"
+                  error={Boolean(formErrors.subnet)}
+                  helperText={formErrors.subnet || ''}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -644,12 +706,17 @@ const MachineRecordsPage: React.FC = () => {
                   label="Date"
                   type="date"
                   value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, date: e.target.value });
+                    setFormErrors((prev) => ({ ...prev, date: '' }));
+                  }}
                   size="small"
                   slotProps={{ inputLabel: { shrink: true } }}
+                  error={Boolean(formErrors.date)}
+                  helperText={formErrors.date || ''}
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
+              {/* <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   label="Trainer"
@@ -657,14 +724,19 @@ const MachineRecordsPage: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, trainer: e.target.value })}
                   size="small"
                 />
-              </Grid>
+              </Grid> */}
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   label="Machine"
                   value={formData.machine}
-                  onChange={(e) => setFormData({ ...formData, machine: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, machine: e.target.value });
+                    setFormErrors((prev) => ({ ...prev, machine: '' }));
+                  }}
                   size="small"
+                  error={Boolean(formErrors.machine)}
+                  helperText={formErrors.machine || ''}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -672,18 +744,28 @@ const MachineRecordsPage: React.FC = () => {
                   fullWidth
                   label="Dataset"
                   value={formData.dataset}
-                  onChange={(e) => setFormData({ ...formData, dataset: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, dataset: e.target.value });
+                    setFormErrors((prev) => ({ ...prev, dataset: '' }));
+                  }}
                   size="small"
+                  error={Boolean(formErrors.dataset)}
+                  helperText={formErrors.dataset || ''}
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   label="Epoch"
                   type="number"
                   value={formData.epoch}
-                  onChange={(e) => setFormData({ ...formData, epoch: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, epoch: parseInt(e.target.value) || 0 });
+                    setFormErrors((prev) => ({ ...prev, epoch: '' }));
+                  }}
                   size="small"
+                  error={Boolean(formErrors.epoch)}
+                  helperText={formErrors.epoch || ''}
                 />
               </Grid>
               <Grid size={12}>
@@ -691,8 +773,13 @@ const MachineRecordsPage: React.FC = () => {
                   fullWidth
                   label="Purpose"
                   value={formData.purpose}
-                  onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, purpose: e.target.value });
+                    setFormErrors((prev) => ({ ...prev, purpose: '' }));
+                  }}
                   size="small"
+                  error={Boolean(formErrors.purpose)}
+                  helperText={formErrors.purpose || ''}
                 />
               </Grid>
               <Grid size={12}>
@@ -700,8 +787,13 @@ const MachineRecordsPage: React.FC = () => {
                   fullWidth
                   label="Result"
                   value={formData.result}
-                  onChange={(e) => setFormData({ ...formData, result: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, result: e.target.value });
+                    setFormErrors((prev) => ({ ...prev, result: '' }));
+                  }}
                   size="small"
+                  error={Boolean(formErrors.result)}
+                  helperText={formErrors.result || ''}
                 />
               </Grid>
               <Grid size={12}>
@@ -709,10 +801,15 @@ const MachineRecordsPage: React.FC = () => {
                   fullWidth
                   label="Analysis"
                   value={formData.analysis}
-                  onChange={(e) => setFormData({ ...formData, analysis: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, analysis: e.target.value });
+                    setFormErrors((prev) => ({ ...prev, analysis: '' }));
+                  }}
                   size="small"
                   multiline
                   rows={3}
+                  error={Boolean(formErrors.analysis)}
+                  helperText={formErrors.analysis || ''}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -721,13 +818,22 @@ const MachineRecordsPage: React.FC = () => {
                   <Select
                     value={formData.status}
                     label="Status"
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, status: e.target.value });
+                      setFormErrors((prev) => ({ ...prev, status: '' }));
+                    }}
+                    error={Boolean(formErrors.status)}
                   >
                     <MenuItem value="pending">Pending</MenuItem>
                     <MenuItem value="running">Running</MenuItem>
                     <MenuItem value="completed">Completed</MenuItem>
                     <MenuItem value="failed">Failed</MenuItem>
                   </Select>
+                  {formErrors.status && (
+                    <Typography variant="caption" sx={{ color: '#d32f2f', ml: 1.5, mt: 0.5, display: 'block' }}>
+                      {formErrors.status}
+                    </Typography>
+                  )}
                 </FormControl>
               </Grid>
             </Grid>
