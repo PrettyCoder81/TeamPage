@@ -21,8 +21,10 @@ function generateWeeklyStatus(
   for (let i = 0; i < 60; i++) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().split('T')[0];
-    const dayOfWeek = date.getDay();
+    // Use EST timezone for date string
+    const estDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const dateStr = estDate.toISOString().split('T')[0];
+    const dayOfWeek = estDate.getDay();
     if (dayOfWeek === 0 || dayOfWeek === 6) {
       // Weekends - use default status
       status[dateStr] = defaultStatus;
@@ -100,11 +102,12 @@ export const mockMembers: Member[] = [
   },
 ];
 
-// Generate dates relative to today so they stay relevant
+// Generate dates relative to today in EST timezone
 function getRecentDate(daysAgo: number): string {
   const d = new Date();
   d.setDate(d.getDate() - daysAgo);
-  return d.toISOString().split('T')[0];
+  // Return EST timezone-aware timestamp
+  return d.toISOString().replace('Z', '-05:00');
 }
 
 export const mockMachineRecords: MachineRecord[] = [
