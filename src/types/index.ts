@@ -46,3 +46,14 @@ export interface CalendarEvent {
   type: 'present' | 'absent' | 'leave' | 'remote';
   memberName: string;
 }
+
+export interface ReferencePost {
+  id: string;
+  url: string;
+  title: string;
+  description?: string;
+  tags: string[];
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}

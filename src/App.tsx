@@ -9,6 +9,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 import DashboardPage from './pages/DashboardPage';
 import MembersPage from './pages/MembersPage';
 import MachineRecordsPage from './pages/MachineRecordsPage';
+import ReferencePostsPage from './pages/ReferencePostsPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
@@ -123,6 +124,16 @@ const AppRoutes: React.FC = () => {
           <ProtectedRoute>
             <AuthenticatedLayout pageTitle="Machine Renting Report">
               <MachineRecordsPage />
+            </AuthenticatedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reference-posts"
+        element={
+          <ProtectedRoute>
+            <AuthenticatedLayout pageTitle="Reference Posts">
+              <ReferencePostsPage />
             </AuthenticatedLayout>
           </ProtectedRoute>
         }

@@ -17,6 +17,7 @@ import {
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
+import LinkIcon from '@mui/icons-material/Link';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 
@@ -26,6 +27,7 @@ const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
   { path: '/members', label: 'Members', icon: <PeopleIcon /> },
   { path: '/machine-records', label: 'Machine Renting Report', icon: <PrecisionManufacturingIcon /> },
+  { path: '/reference-posts', label: 'Reference Posts', icon: <LinkIcon /> },
 ];
 
 const Sidebar: React.FC = () => {
