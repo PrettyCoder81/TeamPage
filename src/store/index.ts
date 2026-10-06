@@ -4,6 +4,7 @@ import membersReducer from './slices/membersSlice';
 import machineRecordsReducer from './slices/machineRecordsSlice';
 import settingsReducer from './slices/settingsSlice';
 import profileReducer from './slices/profileSlice';
+import referencePostsReducer from './slices/referencePostsSlice';
 
 const STORAGE_KEY = 'team-portal-state';
 
@@ -21,6 +22,7 @@ const persistMiddleware: Middleware = (storeAPI) => (next) => (action) => {
           machineRecords: state.machineRecords,
           settings: state.settings,
           profile: state.profile,
+          referencePosts: state.referencePosts,
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(toPersist));
       } catch (e) {
@@ -50,6 +52,7 @@ const rootReducer = combineReducers({
   machineRecords: machineRecordsReducer,
   settings: settingsReducer,
   profile: profileReducer,
+  referencePosts: referencePostsReducer,
 });
 
 const persistedState = loadPersistedState();

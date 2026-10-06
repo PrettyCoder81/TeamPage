@@ -11,6 +11,7 @@ export const api = USE_MOCK_API ? mockApi : {
   machineRecords: realApi.machineRecordsApi,
   profile: realApi.profileApi,
   settings: realApi.settingsApi,
+  referencePosts: realApi.referencePostsApi,
 };
 
 export { mockApi };

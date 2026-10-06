@@ -172,6 +172,98 @@ export const mockApi = {
       return updates;
     },
   },
+
+  // Reference Posts API
+  referencePosts: {
+    getAll: async (): Promise<any[]> => {
+      await delay(300);
+      return [
+        {
+          id: '1',
+          url: 'https://arxiv.org/abs/2005.14165',
+          title: 'Language Models are Few-Shot Learners',
+          description: 'GPT-3 paper demonstrating few-shot learning capabilities of large language models.',
+          tags: ['NLP', 'GPT-3', 'LLM'],
+          createdBy: '1',
+          createdAt: '2024-01-15T10:00:00Z',
+          updatedAt: '2024-01-15T10:00:00Z',
+        },
+        {
+          id: '2',
+          url: 'https://pytorch.org/tutorials/',
+          title: 'PyTorch Tutorials',
+          description: 'Official PyTorch tutorials for deep learning practitioners.',
+          tags: ['PyTorch', 'Tutorial', 'Deep Learning'],
+          createdBy: '2',
+          createdAt: '2024-01-16T14:30:00Z',
+          updatedAt: '2024-01-16T14:30:00Z',
+        },
+        {
+          id: '3',
+          url: 'https://huggingface.co/docs',
+          title: 'Hugging Face Documentation',
+          description: 'Comprehensive documentation for Hugging Face transformers library.',
+          tags: ['Hugging Face', 'Transformers', 'NLP'],
+          createdBy: '1',
+          createdAt: '2024-01-17T09:15:00Z',
+          updatedAt: '2024-01-17T09:15:00Z',
+        },
+        {
+          id: '4',
+          url: 'https://www.kaggle.com/learn',
+          title: 'Kaggle Learn',
+          description: 'Free courses on machine learning, data science, and more.',
+          tags: ['Kaggle', 'Tutorial', 'Machine Learning'],
+          createdBy: '3',
+          createdAt: '2024-01-18T16:45:00Z',
+          updatedAt: '2024-01-18T16:45:00Z',
+        },
+        {
+          id: '5',
+          url: 'https://github.com/microsoft/ML-For-Beginners',
+          title: 'ML For Beginners',
+          description: 'Microsoft\'s 12-week, 26-lesson curriculum on classic machine learning.',
+          tags: ['GitHub', 'Tutorial', 'Machine Learning'],
+          createdBy: '2',
+          createdAt: '2024-01-19T11:20:00Z',
+          updatedAt: '2024-01-19T11:20:00Z',
+        },
+      ];
+    },
+
+    getById: async (id: string): Promise<any> => {
+      await delay(200);
+      const posts = await mockApi.referencePosts.getAll();
+      return posts.find(p => p.id === id);
+    },
+
+    create: async (post: any): Promise<any> => {
+      await delay(400);
+      const newPost = {
+        ...post,
+        id: String(Date.now()),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      return newPost;
+    },
+
+    update: async (id: string, updates: any): Promise<any> => {
+      await delay(300);
+      const post = await mockApi.referencePosts.getById(id);
+      if (!post) throw new Error('Post not found');
+      
+      return {
+        ...post,
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
+    },
+
+    delete: async (id: string): Promise<void> => {
+      await delay(300);
+    },
+  },
 };
 
 export default mockApi;
