@@ -103,3 +103,30 @@ export const settingsApi = {
     return response.data;
   },
 };
+
+// Reference Posts API
+export const referencePostsApi = {
+  getAll: async (): Promise<any[]> => {
+    const response = await apiClient.get('/reference-posts');
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<any> => {
+    const response = await apiClient.get(`/reference-posts/${id}`);
+    return response.data;
+  },
+
+  create: async (post: any): Promise<any> => {
+    const response = await apiClient.post('/reference-posts', post);
+    return response.data;
+  },
+
+  update: async (id: string, updates: any): Promise<any> => {
+    const response = await apiClient.put(`/reference-posts/${id}`, updates);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/reference-posts/${id}`);
+  },
+};

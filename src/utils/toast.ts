@@ -82,6 +82,12 @@ export const toastActions = {
   recordDeleted: () => showSuccess('Record deleted successfully.'),
   recordError: (action: string) => showError(`Failed to ${action} record. Please try again.`),
 
+  // Reference Posts
+  postCreated: () => showSuccess('Reference post created successfully.'),
+  postUpdated: () => showSuccess('Reference post updated successfully.'),
+  postDeleted: () => showSuccess('Reference post deleted successfully.'),
+  postError: (action: string) => showError(`Failed to ${action} post. Please try again.`),
+
   // Profile
   profileUpdated: () => showSuccess('Profile updated successfully.'),
   profileError: () => showError('Failed to update profile. Please try again.'),
