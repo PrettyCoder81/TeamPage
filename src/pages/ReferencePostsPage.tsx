@@ -30,6 +30,7 @@ import {
   FormControl,
   InputLabel,
 } from '@mui/material';
+import { formatEST } from '../utils/timezone';
 import {
   Add as AddIcon,
   Edit as EditIcon,
@@ -445,7 +446,7 @@ const ReferencePostsPage: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
-                        {new Date(post.createdAt).toLocaleDateString()}
+                        {formatEST(post.createdAt, 'MMM D, YYYY')}
                       </Typography>
                     </TableCell>
                     <TableCell>

@@ -34,6 +34,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
+import { formatEST, getESTDateString } from '../utils/timezone';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import AddIcon from '@mui/icons-material/Add';
@@ -123,7 +124,7 @@ const MachineRecordsPage: React.FC = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<Partial<MachineRecord>>({
     subnet: '',
-    date: getEstDateString(),
+    date: getESTDateString(),
     trainer: '',
     machine: '',
     dataset: '',
@@ -209,7 +210,7 @@ const MachineRecordsPage: React.FC = () => {
     setFormErrors({});
     setFormData({
       subnet: '',
-      date: getEstDateString(),
+      date: getESTDateString(),
       trainer: user?.name || '',
       machine: '',
       dataset: '',
@@ -511,7 +512,7 @@ const MachineRecordsPage: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="body2">{record.date}</Typography>
+                          <Typography variant="body2">{formatEST(record.date, 'MMM D, YYYY')}</Typography>
                           {isLatest && (
                             <Chip 
                               label="Latest" 
@@ -592,7 +593,7 @@ const MachineRecordsPage: React.FC = () => {
                                   <Typography variant="body2" sx={{ color: '#64748b' }}>Subnet:</Typography>
                                   <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>{record.subnet}</Typography>
                                   <Typography variant="body2" sx={{ color: '#64748b' }}>Date:</Typography>
-                                  <Typography variant="body2">{record.date}</Typography>
+                                  <Typography variant="body2">{formatEST(record.date, 'MMMM D, YYYY [at] h:mm A')}</Typography>
                                   <Typography variant="body2" sx={{ color: '#64748b' }}>Trainer:</Typography>
                                   <Typography variant="body2">{record.trainer}</Typography>
                                   <Typography variant="body2" sx={{ color: '#64748b' }}>Machine:</Typography>

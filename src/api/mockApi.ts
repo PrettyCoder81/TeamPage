@@ -185,8 +185,8 @@ export const mockApi = {
           description: 'GPT-3 paper demonstrating few-shot learning capabilities of large language models.',
           tags: ['NLP', 'GPT-3', 'LLM'],
           createdBy: '1',
-          createdAt: '2024-01-15T10:00:00Z',
-          updatedAt: '2024-01-15T10:00:00Z',
+          createdAt: '2024-01-15T10:00:00-05:00', // EST
+          updatedAt: '2024-01-15T10:00:00-05:00',
         },
         {
           id: '2',
@@ -195,8 +195,8 @@ export const mockApi = {
           description: 'Official PyTorch tutorials for deep learning practitioners.',
           tags: ['PyTorch', 'Tutorial', 'Deep Learning'],
           createdBy: '2',
-          createdAt: '2024-01-16T14:30:00Z',
-          updatedAt: '2024-01-16T14:30:00Z',
+          createdAt: '2024-01-16T14:30:00-05:00', // EST
+          updatedAt: '2024-01-16T14:30:00-05:00',
         },
         {
           id: '3',
@@ -205,8 +205,8 @@ export const mockApi = {
           description: 'Comprehensive documentation for Hugging Face transformers library.',
           tags: ['Hugging Face', 'Transformers', 'NLP'],
           createdBy: '1',
-          createdAt: '2024-01-17T09:15:00Z',
-          updatedAt: '2024-01-17T09:15:00Z',
+          createdAt: '2024-01-17T09:15:00-05:00', // EST
+          updatedAt: '2024-01-17T09:15:00-05:00',
         },
         {
           id: '4',
@@ -215,8 +215,8 @@ export const mockApi = {
           description: 'Free courses on machine learning, data science, and more.',
           tags: ['Kaggle', 'Tutorial', 'Machine Learning'],
           createdBy: '3',
-          createdAt: '2024-01-18T16:45:00Z',
-          updatedAt: '2024-01-18T16:45:00Z',
+          createdAt: '2024-01-18T16:45:00-05:00', // EST
+          updatedAt: '2024-01-18T16:45:00-05:00',
         },
         {
           id: '5',
@@ -225,8 +225,8 @@ export const mockApi = {
           description: 'Microsoft\'s 12-week, 26-lesson curriculum on classic machine learning.',
           tags: ['GitHub', 'Tutorial', 'Machine Learning'],
           createdBy: '2',
-          createdAt: '2024-01-19T11:20:00Z',
-          updatedAt: '2024-01-19T11:20:00Z',
+          createdAt: '2024-01-19T11:20:00-05:00', // EST
+          updatedAt: '2024-01-19T11:20:00-05:00',
         },
       ];
     },
@@ -239,11 +239,13 @@ export const mockApi = {
 
     create: async (post: any): Promise<any> => {
       await delay(400);
+      const now = new Date();
+      const estTimestamp = now.toISOString().replace('Z', '-05:00'); // EST timezone
       const newPost = {
         ...post,
         id: String(Date.now()),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: estTimestamp,
+        updatedAt: estTimestamp,
       };
       return newPost;
     },
@@ -253,10 +255,13 @@ export const mockApi = {
       const post = await mockApi.referencePosts.getById(id);
       if (!post) throw new Error('Post not found');
       
+      const now = new Date();
+      const estTimestamp = now.toISOString().replace('Z', '-05:00'); // EST timezone
+      
       return {
         ...post,
         ...updates,
-        updatedAt: new Date().toISOString(),
+        updatedAt: estTimestamp,
       };
     },
 

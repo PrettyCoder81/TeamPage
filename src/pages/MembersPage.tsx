@@ -22,6 +22,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { Member } from '../types';
+import { getESTNow } from '../utils/timezone';
 
 const statusColors: Record<string, { bg: string; color: string }> = {
   active: { bg: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' },
@@ -38,8 +39,8 @@ const dayStatusColors: Record<string, string> = {
 
 const MembersPage: React.FC = () => {
   const members = useSelector((state: RootState) => state.members.members);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(getESTNow().month());
+  const [selectedYear, setSelectedYear] = useState(getESTNow().year());
 
   const daysInMonth = useMemo(() => {
     return new Date(selectedYear, selectedMonth + 1, 0).getDate();
