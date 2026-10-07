@@ -31,10 +31,11 @@ import {
   Stack,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
-import { formatEST, getESTDateString } from '../utils/timezone';
+import { EST_TIMEZONE, formatEST, getESTNow } from '../utils/timezone';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import AddIcon from '@mui/icons-material/Add';
@@ -88,6 +89,19 @@ const getEstDateString = (date: Date | string = new Date()) => {
 
 const ROWS_PER_PAGE = 5;
 
+const getESTCalendarDate = (date: string) =>
+  date.includes('T') ? formatEST(date, 'YYYY-MM-DD') : date;
+
+const formatRecordDate = (date: string) =>
+  formatEST(date, date.includes('T') ? 'MMM D, YYYY h:mm A' : 'MMM D, YYYY');
+
+const getDateTimePickerValue = (date?: string) => {
+  if (!date) return null;
+  return date.includes('T')
+    ? dayjs(date).tz(EST_TIMEZONE)
+    : dayjs.tz(`${date}T00:00`, EST_TIMEZONE);
+};
+
 const validateMachineRecordForm = (data: Partial<MachineRecord>) => {
   const errors: Record<string, string> = {};
   const requiredText = (value?: string) => (value ?? '').trim();
@@ -124,7 +138,7 @@ const MachineRecordsPage: React.FC = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<Partial<MachineRecord>>({
     subnet: '',
-    date: getESTDateString(),
+    date: getESTNow().format('YYYY-MM-DDTHH:mm:ssZ'),
     trainer: '',
     machine: '',
     dataset: '',
@@ -151,15 +165,16 @@ const MachineRecordsPage: React.FC = () => {
       if (filters.machine && record.machine !== filters.machine) return false;
       if (filters.status && record.status !== filters.status) return false;
       if (filters.week) {
-        const day = Number(record.date.split('-')[2]);
+        const day = Number(getESTCalendarDate(record.date).split('-')[2]);
         const weekNum = Math.ceil(day / 7);
         if (weekNum !== parseInt(filters.week)) return false;
       }
+      const recordDate = getESTCalendarDate(record.date);
       if (filters.dateFrom) {
-        if (record.date < filters.dateFrom) return false;
+        if (recordDate < filters.dateFrom) return false;
       }
       if (filters.dateTo) {
-        if (record.date > filters.dateTo) return false;
+        if (recordDate > filters.dateTo) return false;
       }
       return true;
     });
@@ -210,7 +225,7 @@ const MachineRecordsPage: React.FC = () => {
     setFormErrors({});
     setFormData({
       subnet: '',
-      date: getESTDateString(),
+      date: getESTNow().format('YYYY-MM-DDTHH:mm:ssZ'),
       trainer: user?.name || '',
       machine: '',
       dataset: '',
@@ -300,7 +315,7 @@ const MachineRecordsPage: React.FC = () => {
   };
 
   const canEdit = (record: MachineRecord) => {
-    return isAdmin || record.trainer === user?.id;
+    return isAdmin || record.trainer === user?.name;
   };
 
   return (
@@ -516,7 +531,7 @@ const MachineRecordsPage: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="body2">{formatEST(record.date, 'MMM D, YYYY')}</Typography>
+                          <Typography variant="body2">{formatRecordDate(record.date)}</Typography>
                           {isLatest && (
                             <Chip 
                               label="Latest" 
@@ -572,7 +587,7 @@ const MachineRecordsPage: React.FC = () => {
                                   <EditIcon fontSize="small" sx={{ color: '#6366f1' }} />
                                 </IconButton>
                               </Tooltip>
-                              {(isAdmin || record.trainer === user?.id) && (
+                              {(isAdmin || record.trainer === user?.name) && (
                                 <Tooltip title="Delete">
                                   <IconButton size="small" onClick={() => handleDelete(record.id)}>
                                     <DeleteIcon fontSize="small" sx={{ color: '#ef4444' }} />
@@ -706,19 +721,25 @@ const MachineRecordsPage: React.FC = () => {
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  fullWidth
-                  label="Date"
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => {
-                    setFormData({ ...formData, date: e.target.value });
+                <DateTimePicker
+                  label="Date and time"
+                  timezone={EST_TIMEZONE}
+                  value={getDateTimePickerValue(formData.date)}
+                  onChange={(date) => {
+                    setFormData({
+                      ...formData,
+                      date: date?.tz(EST_TIMEZONE).format('YYYY-MM-DDTHH:mm:ssZ') ?? '',
+                    });
                     setFormErrors((prev) => ({ ...prev, date: '' }));
                   }}
-                  size="small"
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  error={Boolean(formErrors.date)}
-                  helperText={formErrors.date || ''}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: 'small',
+                      error: Boolean(formErrors.date),
+                      helperText: formErrors.date || '',
+                    },
+                  }}
                 />
               </Grid>
               {/* <Grid size={{ xs: 12, sm: 6 }}>

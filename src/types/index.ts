@@ -54,5 +54,4 @@ export interface ReferencePost {
   tags: string[];
   createdBy: string;
   createdAt: string;
-  updatedAt: string;
 }

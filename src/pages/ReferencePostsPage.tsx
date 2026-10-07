@@ -199,7 +199,7 @@ const ReferencePostsPage: React.FC = () => {
         await dispatch(
           createReferencePost({
             ...formData,
-            createdBy: user?.id || '',
+            createdBy: user?.name || '',
           })
         ).unwrap();
         toastActions.recordCreated();
@@ -223,7 +223,7 @@ const ReferencePostsPage: React.FC = () => {
   };
 
   const canEdit = (post: ReferencePost) => {
-    return isAdmin || post.createdBy === user?.id;
+    return isAdmin || post.createdBy === user?.name;
   };
 
   const getDomainFromUrl = (url: string) => {
@@ -235,6 +235,7 @@ const ReferencePostsPage: React.FC = () => {
     }
   };
 
+  console.log(paginatedPosts)
   return (
     <Box>
       {/* Header */}
@@ -446,7 +447,7 @@ const ReferencePostsPage: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
-                        {formatEST(post.createdAt, 'MMM D, YYYY')}
+                        {formatEST(post.createdAt)}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -543,7 +544,7 @@ const ReferencePostsPage: React.FC = () => {
               <TextField
                 fullWidth
                 label="Tags (comma-separated)"
-                value={formData.tags.join(', ')}
+                // value={formData.tags.join(', ')}
                 onChange={(e) => {
                   const tags = e.target.value
                     .split(',')

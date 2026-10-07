@@ -37,10 +37,7 @@ const initialState: MachineRecordsState = {
 const normalizeMachineRecord = (record: Partial<MachineRecord> | null | undefined) => {
   if (!record || !record.id) return null;
 
-  return {
-    ...record,
-    date: typeof record.date === 'string' ? record.date.split('T')[0] : record.date,
-  } as MachineRecord;
+  return record as MachineRecord;
 };
 
 // Async Thunks
@@ -49,10 +46,7 @@ export const fetchMachineRecords = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const records = await api.machineRecords.getAll();
-      return records.map((record: any) => ({
-        ...record,
-        date: record.date.split('T')[0], // Format date to YYYY-MM-DD
-      }));
+      return records;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch records');
     }
