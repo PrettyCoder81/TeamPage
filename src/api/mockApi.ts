@@ -30,14 +30,14 @@ export const mockApi = {
       throw new Error('Invalid credentials');
     },
 
-    register: async (userData: { name: string; email: string; password: string; role: 'admin' | 'user' }): Promise<{ user: User; token: string }> => {
+    register: async (userData: { name: string; email: string; password: string; }): Promise<{ user: User; token: string }> => {
       await delay(500);
       
       const user: User = {
         id: String(Date.now()),
         name: userData.name,
         email: userData.email,
-        role: userData.role,
+        role: 'user',
       };
       
       return {

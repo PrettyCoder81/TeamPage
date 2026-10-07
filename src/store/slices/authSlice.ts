@@ -32,7 +32,7 @@ export const login = createAsyncThunk(
 
 export const register = createAsyncThunk(
   'auth/register',
-  async (userData: { name: string; email: string; password: string; role: 'admin' | 'user' }, { rejectWithValue }) => {
+  async (userData: { name: string; email: string; password: string;}, { rejectWithValue }) => {
     try {
       const response = await api.auth.register(userData);
       localStorage.setItem('authToken', response.token);

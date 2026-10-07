@@ -34,13 +34,25 @@ const initialState: MachineRecordsState = {
   error: null,
 };
 
+const normalizeMachineRecord = (record: Partial<MachineRecord> | null | undefined) => {
+  if (!record || !record.id) return null;
+
+  return {
+    ...record,
+    date: typeof record.date === 'string' ? record.date.split('T')[0] : record.date,
+  } as MachineRecord;
+};
+
 // Async Thunks
 export const fetchMachineRecords = createAsyncThunk(
   'machineRecords/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
       const records = await api.machineRecords.getAll();
-      return records;
+      return records.map((record: any) => ({
+        ...record,
+        date: record.date.split('T')[0], // Format date to YYYY-MM-DD
+      }));
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch records');
     }
@@ -115,10 +127,20 @@ const machineRecordsSlice = createSlice({
       })
       // Update
       .addCase(updateMachineRecord.fulfilled, (state, action) => {
-        const index = state.records.findIndex(r => r.id === action.payload.id);
-        if (index !== -1) {
-          state.records[index] = action.payload;
+        const updatedRecord = normalizeMachineRecord(action.payload);
+        if (!updatedRecord) return;
+
+        const index = state.records.findIndex(r => r.id === updatedRecord.id);
+        if (index === -1) {
+          state.records.unshift(updatedRecord);
+          return;
         }
+
+        state.records[index] = {
+          ...state.records[index],
+          ...updatedRecord,
+          date: updatedRecord.date || state.records[index].date,
+        };
       })
       // Delete
       .addCase(deleteMachineRecord.fulfilled, (state, action) => {

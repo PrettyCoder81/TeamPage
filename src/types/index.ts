@@ -37,7 +37,6 @@ export interface MachineRecord {
   purpose: string;
   result: string;
   analysis: string;
-  createdBy: string;
   status: 'running' | 'completed' | 'failed' | 'pending';
 }
 

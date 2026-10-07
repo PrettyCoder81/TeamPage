@@ -12,8 +12,6 @@ import {
   MenuItem,
   Divider,
   ListItemIcon,
-  Switch,
-  FormControlLabel,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -21,7 +19,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import { useSelector } from 'react-redux';
 import { RootState, useAppDispatch } from '../store';
-import { switchRole, logout } from '../store/slices/authSlice';
+import { logout } from '../store/slices/authSlice';
 import { toastActions } from '../utils/toast';
 
 interface HeaderProps {
@@ -40,14 +38,6 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
-  };
-
-  const handleRoleSwitch = () => {
-    if (user?.role === 'admin') {
-      dispatch(switchRole('user'));
-    } else {
-      dispatch(switchRole('admin'));
-    }
   };
 
   const handleLogout = async () => {
@@ -83,24 +73,6 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
           {title}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={user?.role === 'admin'}
-                onChange={handleRoleSwitch}
-                size="small"
-                sx={{
-                  '& .MuiSwitch-switchBase.Mui-checked': { color: '#6366f1' },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#6366f1' },
-                }}
-              />
-            }
-            label={
-              <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.8rem' }}>
-                {user?.role === 'admin' ? 'Admin' : 'User'}
-              </Typography>
-            }
-          />
           <IconButton sx={{ color: '#64748b' }}>
             <Badge badgeContent={3} color="error" variant="dot">
               <NotificationsIcon />
