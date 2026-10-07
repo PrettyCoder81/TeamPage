@@ -98,8 +98,8 @@ const validateMachineRecordForm = (data: Partial<MachineRecord>) => {
   if (!requiredText(data.dataset)) errors.dataset = 'Dataset is required';
   if (Number(data.epoch) <= 0) errors.epoch = 'Epoch must be greater than 0';
   if (!requiredText(data.purpose)) errors.purpose = 'Purpose is required';
-  if (!requiredText(data.result)) errors.result = 'Result is required';
-  if (!requiredText(data.analysis)) errors.analysis = 'Analysis is required';
+  // if (!requiredText(data.result)) errors.result = 'Result is required';
+  // if (!requiredText(data.analysis)) errors.analysis = 'Analysis is required';
   if (!data.status) errors.status = 'Status is required';
 
   return errors;
@@ -263,7 +263,7 @@ const MachineRecordsPage: React.FC = () => {
         const newRecord: Omit<MachineRecord, 'id'> = {
           subnet: formData.subnet || '',
           date: formData.date || '',
-          trainer: user?.id || '',
+          trainer: user?.name || '',
           machine: formData.machine || '',
           dataset: formData.dataset || '',
           epoch: formData.epoch || 0,
@@ -272,10 +272,14 @@ const MachineRecordsPage: React.FC = () => {
           analysis: formData.analysis || '',
           status: (formData.status as MachineRecord['status']) || 'pending',
         };
-        await dispatch(createMachineRecord(newRecord)).unwrap();
+        const createdRecord = await dispatch(createMachineRecord(newRecord)).unwrap();
         toastActions.recordCreated();
-        // Go to first page to show the new record (latest first)
-        setCurrentPage(1);
+        dispatch(clearFilters());
+        const sortedRecords = [...records, createdRecord].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+        const createdRecordIndex = sortedRecords.findIndex((record) => record.id === createdRecord.id);
+        setCurrentPage(Math.floor(createdRecordIndex / ROWS_PER_PAGE) + 1);
       }
       setFormErrors({});
       setDialogOpen(false);
